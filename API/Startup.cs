@@ -2,10 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.Handlers;
+using Core.Repositories;
+using Infrastructure.Data;
+using Infrastructure.Repositories;
+using Infrastructure.Repositories.Base;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,6 +34,13 @@ namespace API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddApiVersioning();
+            services.AddDbContext<MovieContext>(m => m.UseSqlite(Configuration.GetConnectionString("MovieConnection")),
+                ServiceLifetime.Singleton);
+            services.AddAutoMapper(typeof(Startup));
+            services.AddMediatR(typeof(CreateMovieHandler).Assembly);
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddTransient<IMovieRepository, MovieRepository>();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "API", Version = "v1"}); });
         }
 
